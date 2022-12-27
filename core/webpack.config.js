@@ -10,9 +10,9 @@ module.exports = {
     entry: "./src/App.fs.js",
     output: {
         path: path.join(__dirname, "./public"),
-        filename: "bundle.js",
-        libraryTarget: 'var',
-        library: "ToxParserLib"
+        filename: "core.js",
+        library: "ToxParserLib",
+        libraryTarget: 'commonjs'
     },
     devServer: {
         static: {
