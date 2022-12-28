@@ -3,14 +3,18 @@ import * as path from 'path';
 import * as util from 'util';
 import { TOX_FILE_NAME } from './common';
 
-export function create() {
-    const controller = vscode.tests.createTestController("bearded_platypus.tox_test_controller", "Tox");
 
-    controller.resolveHandler = async (test) => {
-        if (!test) {
+let core = require("./core.js");
+
+
+export function create() {
+    const controller = vscode.tests.createTestController("bearded_platypus.tox_test_controller", "Tox Runner");
+
+    controller.resolveHandler = async (file) => {
+        if (!file) {
             await discoverAllFilesInWorkspace();
         } else {
-            await parseTestsInFileContents(test);
+            await parseTestsInFileContents(file);
         }
     };
 
@@ -24,6 +28,17 @@ export function create() {
             parseTestsInFileContents(resolveFile(e.uri), e.getText());
         }
     }
+
+    type ToxTask = {
+        full_env_name: string;
+        line: number;
+    }
+
+    type ToxStructure = {
+        name: string;
+        sub_structures: ToxStructure[];
+        sub_tests: ToxTask[];
+    }
     
     async function parseTestsInFileContents(file: vscode.TestItem, contents?: string) {
         // If a document is open, VS Code already knows its contents. If this is being
@@ -34,14 +49,34 @@ export function create() {
             const rawContent = await vscode.workspace.fs.readFile(file.uri!);
             contents = new util.TextDecoder().decode(rawContent);
         }
-        
-        // some custom logic to fill in test.children from the contents...
-        let testItems: vscode.TestItem[] = [];
-		
-        const newTestItem = controller.createTestItem("test", "test", file.uri);
-        testItems.push(newTestItem);
 
-        return testItems;
+        function buildTestItems(parentTestItem: vscode.TestItem, structure: ToxStructure) {
+            let testItems: vscode.TestItem[] = [];
+            for (const subStructure of structure.sub_structures) {
+                var subStructureTestItem = controller.createTestItem(
+                    parentTestItem.id + "/" + subStructure.name,
+                    subStructure.name,
+                    file.uri
+                );
+                buildTestItems(subStructureTestItem, subStructure);
+                testItems.push(subStructureTestItem);
+            }
+
+            for (const subTest of structure.sub_tests) {
+                var taskItem = controller.createTestItem(
+                    parentTestItem.id + "/" + subTest.full_env_name, 
+                    subTest.full_env_name, 
+                    file.uri
+                );
+                taskItem.range = new vscode.Range(subTest.line, 0, subTest.line, 0);
+                testItems.push(taskItem);
+            }
+
+            parentTestItem.children.replace(testItems);
+        }
+
+		var rootStructure = core.ToxParserLib.parseToxStructure("tox.ini", contents);
+        buildTestItems(file, rootStructure);
     }
 
     function getExistingFile(uri: vscode.Uri): vscode.TestItem | undefined {
