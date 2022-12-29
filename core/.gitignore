@@ -1,3 +1,6 @@
+# Project specific
+public/
+
 # Fable generated files
 .fable
 *.fs.js
