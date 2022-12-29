@@ -77,6 +77,11 @@ let private envListFold (acc: EnvListAcc) (line: string): EnvListAcc =
             let value = line.Split([|'='|], 2)[1]
             let new_elements = retrieveEnvFromEnvlistLine value acc.line
             { acc with isParsing = true; elements = acc.elements @ new_elements}
+        elif acc.isInToxEnv && acc.isParsing && (trimmedLine.Contains("=")) then
+            { acc with isInToxEnv = false; isFinished = true }
+        elif acc.isInToxEnv && acc.isParsing then
+            let new_elements = retrieveEnvFromEnvlistLine trimmedLine acc.line
+            { acc with elements = acc.elements @ new_elements}
         else
             acc
 
