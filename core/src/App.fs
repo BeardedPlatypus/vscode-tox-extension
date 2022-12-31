@@ -182,14 +182,51 @@ let private retrieveEnvListElements (lines: string list): ToxTask list =
     result.elements
 
 
-let private buildToxStructure (name: string) (tasks: ToxTask list): ToxStructure =
-    // let sub_tests: ToxTask list = []
-    let sub_structures: ToxStructure list = []
+type private StructureData = string * (string list * ToxTask) list
 
-    { name = name;
-      sub_structures = sub_structures |> List.toArray;
-      sub_tests = tasks |> List.toArray;
-    }
+
+type private BuildStructureElement = 
+| Task of ToxTask
+| Structure of StructureData
+
+
+let private toBuildStructureElement (common_factor: string, tasks: (string list * ToxTask) list): BuildStructureElement =
+    match tasks with
+    | (unique_factors, task) :: [] -> Task { task with pretty_name = String.Join("-", unique_factors) }
+    | l when l |> (not << List.isEmpty) -> Structure (common_factor, l |> List.map (fun (_ :: factors, task) -> (factors, task)))
+    | _ -> raise (new ArgumentOutOfRangeException("Invalid factor"))  // This really should not happen
+
+
+let private buildToxStructure (root_name: string) (tasks: ToxTask list) : ToxStructure =
+
+    let rec buildStructuresRec (structure_name: string) (factors: (string list * ToxTask) list): ToxStructure =
+        let grouped_factors = 
+            factors 
+            |> List.filter (fun (l, _) -> not (List.isEmpty l))
+            |> List.groupBy (fun ((e :: _), _) -> e)
+        let build_structures = grouped_factors |> List.map toBuildStructureElement
+        
+        let folder (tasks: ToxTask list, structures: StructureData list) (v: BuildStructureElement): ToxTask list * StructureData list =
+            match v with
+            | Task t -> (t :: tasks, structures)
+            | Structure s -> (tasks, s :: structures)
+
+        let (tasks, structure_data) = build_structures |> List.fold folder ([], [])
+        let sub_structures = structure_data |> List.map (fun (common_factor: string, data: (string list * ToxTask) list) -> buildStructuresRec common_factor data)
+
+        { name = structure_name
+          sub_structures = 
+              sub_structures 
+              |> List.sortBy (fun s -> s.name) 
+              |> List.toArray
+          sub_tests = 
+              tasks 
+              |> List.sortBy (fun t -> t.pretty_name) 
+              |> List.toArray
+        }
+
+    let task_factors = tasks |> List.map (fun (t: ToxTask) -> (((t.full_env_name.Split('-')) |> Array.toList), t))
+    buildStructuresRec root_name task_factors
 
 
 let public parseToxStructure (name: string) (tox_string: string): ToxStructure =
