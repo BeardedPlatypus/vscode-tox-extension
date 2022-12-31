@@ -70,8 +70,41 @@ type public ToxStructure = {
 }
 
 
+let private isTestEnvLine (line: string): bool =
+    let trimmedLine = line.Trim()
+    trimmedLine.StartsWith "[testenv:" && trimmedLine.EndsWith "]"
+
+
+type private TestEnvAcc = {
+    line: int
+    elements: ToxTask list
+}
+
+
+let private defaultTestEnvAcc = {
+    line = 0
+    elements = []
+}
+
+
+let private testEnvFolder (acc: TestEnvAcc) (line: string): TestEnvAcc =
+    let getTestEnvName (l: string): string = 
+        let name = l[9..(l.Length - 2)]
+        name.Replace(" ", "")
+
+    let next_acc =  
+        if isTestEnvLine line then
+            { acc with elements = acc.elements @ (toToxTask acc.line (getTestEnvName line)) }
+        else
+            acc
+
+    { next_acc with line = acc.line + 1}
+
+
 let private retrieveTestEnvs (lines: string list): ToxTask list = 
-    []
+    lines
+    |> List.fold testEnvFolder defaultTestEnvAcc
+    |> (fun v -> v.elements)
 
 
 type private EnvListAcc = {
@@ -231,7 +264,7 @@ let private buildToxStructure (root_name: string) (tasks: ToxTask list) : ToxStr
 
 let public parseToxStructure (name: string) (tox_string: string): ToxStructure =
     let lines: string list = 
-        tox_string.Split([|'\n'|],  StringSplitOptions.RemoveEmptyEntries)
+        tox_string.Split([|'\n'|],  StringSplitOptions.None)
         |> Array.toList
     
     let tasks = Set((retrieveTestEnvs lines) @ (retrieveEnvListElements lines)) |> Set.toList
