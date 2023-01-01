@@ -38,3 +38,5 @@ own version. The development notes should help you set the environment. If this 
 is not clear, feel free to open a discussion for help.
 
 [python-tox]: https://marketplace.visualstudio.com/items?itemName=the-compiler.python-tox
+[tox]: https://tox.wiki/en/latest/
+[vscode]: https://code.visualstudio.com/
