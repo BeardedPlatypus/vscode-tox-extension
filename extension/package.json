@@ -14,12 +14,8 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "vscode-tox.helloWorld",
-        "title": "Hello World"
-      }
-    ]
+    "commands": [],
+    "taskDefinitions": []
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
