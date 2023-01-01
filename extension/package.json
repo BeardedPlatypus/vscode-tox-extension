@@ -10,7 +10,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:vscode-tox.helloWorld"
+    "workspaceContains:tox.ini"
   ],
   "main": "./out/extension.js",
   "contributes": {
