@@ -289,4 +289,33 @@ commands = pytest
 			]
 		);
 	});
+
+	const multiple_definitions = (
+`[tox]
+min_version = 4.0
+env_list = type
+
+[testenv:type]
+deps = pytest
+commands = pytest tests
+`)
+
+    test('multiple definitions parses correctly', () => {
+		const name = "tox.ini"
+		var rootStructure = core.ToxParserLib.parseToxStructure(
+			name, multiple_definitions 
+		);
+
+		assert.strictEqual(rootStructure.name, name);
+		assert.strictEqual(rootStructure.sub_structures.length, 0);
+		assert.strictEqual(rootStructure.sub_tests.length, 1);
+
+		const assertSameTask = (task: any, expected_name: string, line: number, pretty_name: string) => {
+			assert.strictEqual(task.full_env_name, expected_name);
+			assert.strictEqual(task.line, line);
+			assert.strictEqual(task.pretty_name, pretty_name);
+		}
+
+		assertSameTask(rootStructure.sub_tests[0], "type", 4, "type")
+	});
 });

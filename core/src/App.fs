@@ -89,7 +89,11 @@ let private defaultTestEnvAcc = {
 
 let private testEnvFolder (acc: TestEnvAcc) (line: string): TestEnvAcc =
     let getTestEnvName (l: string): string = 
-        let name = l[9..(l.Length - 2)]
+        let trimmedLine = l.Trim()
+
+        let start_index = (trimmedLine.IndexOf "[testenv:") + 9
+        let end_index = (trimmedLine.LastIndexOf ']') - 1
+        let name = l.Trim().[start_index..end_index]
         name.Replace(" ", "")
 
     let next_acc =  
@@ -266,7 +270,19 @@ let public parseToxStructure (name: string) (tox_string: string): ToxStructure =
     let lines: string list = 
         tox_string.Split([|'\n'|],  StringSplitOptions.None)
         |> Array.toList
+
+    let simplify (_: string, tasks: ToxTask list): ToxTask = 
+        match tasks with
+        | task :: [] -> 
+            task
+        | task :: tail -> 
+            List.maxBy (fun v -> v.line) (task :: tail)
+        | _ -> 
+            raise (new ArgumentOutOfRangeException("Invalid grouped tasks"))  // This really should not happen
     
-    let tasks = Set((retrieveTestEnvs lines) @ (retrieveEnvListElements lines)) |> Set.toList
+    let tasks = 
+        (retrieveTestEnvs lines) @ (retrieveEnvListElements lines)
+        |> List.groupBy (fun v -> v.full_env_name)
+        |> List.map simplify
     buildToxStructure name tasks
 
