@@ -1,7 +1,7 @@
 {
   "name": "tox-runner",
   "displayName": "tox runner",
-  "description": "",
+  "description": "A simple test discovery and runner for tox environments.",
   "version": "0.1.0",
   "engines": {
     "vscode": "^1.73.0"
@@ -13,6 +13,11 @@
   "categories": [
     "Other"
   ],
+  "keywords": [
+    "python",
+    "tox"
+  ],
+  "icon": "img/icon.png",
   "activationEvents": [
     "workspaceContains:tox.ini"
   ],
