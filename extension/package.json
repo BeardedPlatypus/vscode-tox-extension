@@ -1,8 +1,8 @@
 {
-  "name": "vscode-tox",
-  "displayName": "vscode-tox",
+  "name": "tox-runner",
+  "displayName": "tox runner",
   "description": "",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.73.0"
   },
