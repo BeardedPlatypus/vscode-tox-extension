@@ -31,6 +31,7 @@ export function create() {
 
     type ToxTask = {
         full_env_name: string;
+        pretty_name: string;
         line: number;
     }
 
@@ -39,7 +40,7 @@ export function create() {
         sub_structures: ToxStructure[];
         sub_tests: ToxTask[];
     }
-    
+
     async function parseTestsInFileContents(file: vscode.TestItem, contents?: string) {
         // If a document is open, VS Code already knows its contents. If this is being
         // called from the resolveHandler when a document isn't open, we'll need to
@@ -50,24 +51,35 @@ export function create() {
             contents = new util.TextDecoder().decode(rawContent);
         }
 
+        var constructedTests = new Map();
+
+        function getExistingTest(id: string): vscode.TestItem | undefined {
+            return constructedTests.get(id);
+        }
+
+        function createNewTest(id: string, label:string, uriFile?: vscode.Uri): vscode.TestItem {
+            var test = controller.createTestItem(id, label, uriFile);
+            constructedTests.set(id, test);
+            return test;
+        }
+
+        function resolveTest(id: string, label:string, uriFile?: vscode.Uri): vscode.TestItem {
+            return getExistingTest(id) ?? createNewTest(id, label, uriFile);
+        }
+
         function buildTestItems(parentTestItem: vscode.TestItem, structure: ToxStructure) {
             let testItems: vscode.TestItem[] = [];
+
             for (const subStructure of structure.sub_structures) {
-                var subStructureTestItem = controller.createTestItem(
-                    parentTestItem.id + "/" + subStructure.name,
-                    subStructure.name,
-                    file.uri
-                );
+                const id = parentTestItem.id + "/" + subStructure.name;
+                const subStructureTestItem = resolveTest(id, subStructure.name, file.uri);
                 buildTestItems(subStructureTestItem, subStructure);
                 testItems.push(subStructureTestItem);
             }
 
             for (const subTest of structure.sub_tests) {
-                var taskItem = controller.createTestItem(
-                    parentTestItem.id + "/" + subTest.full_env_name, 
-                    subTest.full_env_name, 
-                    file.uri
-                );
+                const id = parentTestItem.id + "/" + subTest.full_env_name;
+                var taskItem = resolveTest(id, subTest.pretty_name, file.uri);
                 taskItem.range = new vscode.Range(subTest.line, 0, subTest.line, 0);
                 testItems.push(taskItem);
             }
