@@ -179,7 +179,7 @@ let private splitTasks (line: string): string list =
     let last_element = tasks_acc.current_element_reversed |> toElement
 
     last_element :: tasks_acc.elements_reversed
-    |> List.filter (fun t -> not (String.IsNullOrEmpty t))
+    |> List.filter (fun t -> not (String.IsNullOrWhiteSpace t))
     |> List.rev
 
 
