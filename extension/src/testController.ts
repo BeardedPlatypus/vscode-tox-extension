@@ -10,6 +10,21 @@ let core = require("./core.js");
 export function create() {
     const controller = vscode.tests.createTestController("bearded_platypus.tox_test_controller", "Tox Runner");
 
+    enum TestType {
+        Task = 1, 
+        Structure = 2,
+    }
+
+    type ToxTestData = {
+        type: TestType;
+        env_name: string | undefined;
+    }
+
+    const testData = new WeakMap<vscode.TestItem, ToxTestData>();
+
+    // TODO: verify if this works correctly
+    const toxPath: string = vscode.workspace.getConfiguration('tox-runner').get("toxPath") ?? "tox";
+
     controller.resolveHandler = async (file) => {
         if (!file) {
             await discoverAllFilesInWorkspace();
@@ -17,6 +32,75 @@ export function create() {
             await parseTestsInFileContents(file);
         }
     };
+
+    controller.createRunProfile("Run", vscode.TestRunProfileKind.Run, runHandler);
+
+    function getTerminal(name: string): vscode.Terminal | undefined {
+        return vscode.window.terminals.find(term => term.name == name)
+    }
+
+    function createTerminal(name: string, uri: vscode.Uri): vscode.Terminal {
+        return vscode.window.createTerminal({"name": name, "cwd": uri.fsPath})
+    }
+
+    function resolveTerminal(workspace: vscode.WorkspaceFolder): vscode.Terminal {
+        const toxTerminalName = `tox-runner: ${workspace.name}`
+        const term = getTerminal(toxTerminalName) ?? createTerminal(toxTerminalName, workspace.uri)
+        return term
+    }
+
+    function resolveFullEnvName(test: vscode.TestItem) : string {
+        return testData.get(test)?.env_name!;
+    }
+
+    async function runTestInTox(test: vscode.TestItem) {
+        const workspace = vscode.workspace.getWorkspaceFolder(test.uri!);
+        const terminal = resolveTerminal(workspace!);
+        terminal.show(true);
+
+        const command = `${toxPath} -e ${resolveFullEnvName(test)}`;
+        terminal.sendText(command);
+    }
+
+    async function runTest(run: vscode.TestRun, test: vscode.TestItem) {
+        const startTime = Date.now();
+        try {
+            runTestInTox(test);
+            run.passed(test, Date.now() - startTime);
+        } catch(e: any) {
+            run.failed(test, new vscode.TestMessage(e.message), Date.now() - startTime);
+        }
+    }
+
+    function getType(test: vscode.TestItem): TestType {
+        return testData.get(test)!.type;
+    }
+
+    async function runHandler(request: vscode.TestRunRequest, token: vscode.CancellationToken) {
+        const run = controller.createTestRun(request);
+
+        const testItemQueue: vscode.TestItem[] = [];
+        (request.include ?? controller.items).forEach(test => testItemQueue.push(test))
+
+        while (testItemQueue.length > 0 && !token.isCancellationRequested) {
+            const test = testItemQueue.pop()!;
+            
+            if (request.exclude?.includes(test)) {
+                continue;
+            }
+
+            switch (getType(test)) {
+                case TestType.Structure:
+                    test.children.forEach(t => testItemQueue.push(t));
+                    break;
+                case TestType.Task:
+                    runTest(run, test);
+                    break;
+            }
+        }
+
+        run.end();
+    }
 
     // When text documents are open, parse tests in them.
     vscode.workspace.onDidOpenTextDocument(parseTestsInDocument);
@@ -35,10 +119,24 @@ export function create() {
         line: number;
     }
 
+    function dataFromToxTask(task: ToxTask): ToxTestData {
+        return {
+            type: TestType.Task,
+            env_name: task.full_env_name
+        }
+    }
+
     type ToxStructure = {
         name: string;
         sub_structures: ToxStructure[];
         sub_tests: ToxTask[];
+    }
+
+    function dataFromToxStructure(): ToxTestData {
+        return {
+            type: TestType.Structure,
+            env_name: undefined
+        }
     }
 
     async function parseTestsInFileContents(file: vscode.TestItem, contents?: string) {
@@ -57,14 +155,22 @@ export function create() {
             return constructedTests.get(id);
         }
 
-        function createNewTest(id: string, label:string, uriFile?: vscode.Uri): vscode.TestItem {
+        function createNewTest(
+            id: string, label:string, data: ToxTestData, uriFile?: vscode.Uri
+        ): vscode.TestItem {
             var test = controller.createTestItem(id, label, uriFile);
+            testData.set(test, data);
             constructedTests.set(id, test);
             return test;
         }
 
-        function resolveTest(id: string, label:string, uriFile?: vscode.Uri): vscode.TestItem {
-            return getExistingTest(id) ?? createNewTest(id, label, uriFile);
+        function resolveTest(
+            id: string, 
+            label:string,
+            data: ToxTestData,
+            uriFile?: vscode.Uri
+        ): vscode.TestItem {
+            return getExistingTest(id) ?? createNewTest(id, label, data, uriFile);
         }
 
         function buildTestItems(parentTestItem: vscode.TestItem, structure: ToxStructure) {
@@ -72,14 +178,22 @@ export function create() {
 
             for (const subStructure of structure.sub_structures) {
                 const id = parentTestItem.id + "/" + subStructure.name;
-                const subStructureTestItem = resolveTest(id, subStructure.name, file.uri);
+
+                const subStructureTestItem = resolveTest(
+                    id, subStructure.name, dataFromToxStructure(), file.uri
+                );
+
                 buildTestItems(subStructureTestItem, subStructure);
                 testItems.push(subStructureTestItem);
             }
 
             for (const subTest of structure.sub_tests) {
                 const id = parentTestItem.id + "/" + subTest.full_env_name;
-                var taskItem = resolveTest(id, subTest.pretty_name, file.uri);
+
+                var taskItem = resolveTest(
+                    id, subTest.pretty_name, dataFromToxTask(subTest), file.uri
+                );
+
                 taskItem.range = new vscode.Range(subTest.line, 0, subTest.line, 0);
                 testItems.push(taskItem);
             }
@@ -98,7 +212,10 @@ export function create() {
     function createFile(uri: vscode.Uri): vscode.TestItem {
         const id: string = uri.toString();
         const label: string = uri.path.split('/').pop()!;
+
         const file = controller.createTestItem(id, label, uri);
+        testData.set(file, dataFromToxStructure());
+
         controller.items.add(file);
         
         file.canResolveChildren = true;
