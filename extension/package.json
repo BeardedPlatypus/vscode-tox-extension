@@ -1,6 +1,6 @@
 {
   "name": "tox-runner",
-  "displayName": "tox runner",
+  "displayName": "Tox Runner",
   "description": "A simple test discovery and runner for tox environments.",
   "version": "0.1.0",
   "engines": {
@@ -24,7 +24,17 @@
   "main": "./out/extension.js",
   "contributes": {
     "commands": [],
-    "taskDefinitions": []
+    "taskDefinitions": [],
+    "configuration": {
+      "title": "Tox Runner",
+      "properties": {
+        "tox-runner.toxPath": {
+          "type": ["string", "null"],
+          "default": null, 
+          "description": "Specifies the path to the tox executable. If undefined it will use the PATH variable to resolve it."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
