@@ -23,7 +23,17 @@ export function create() {
     const testData = new WeakMap<vscode.TestItem, ToxTestData>();
 
     // TODO: verify if this works correctly
-    const toxPath: string = vscode.workspace.getConfiguration('tox-runner').get("toxPath") ?? "tox";
+    const resolveToxPath = () => {
+        const toxPath: string | undefined = vscode.workspace.getConfiguration('tox-runner').get("toxPath");
+
+        if (toxPath && toxPath.trim() != "" ) {
+            return toxPath;
+        } else {
+            return "tox";
+        }
+    };
+
+    const toxPath: string = resolveToxPath();
 
     controller.resolveHandler = async (file) => {
         if (!file) {

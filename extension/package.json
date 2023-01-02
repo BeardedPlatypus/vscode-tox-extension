@@ -29,8 +29,8 @@
       "title": "Tox Runner",
       "properties": {
         "tox-runner.toxPath": {
-          "type": ["string", "null"],
-          "default": null, 
+          "type": ["string"],
+          "default": "", 
           "description": "Specifies the path to the tox executable. If undefined it will use the PATH variable to resolve it."
         }
       }
