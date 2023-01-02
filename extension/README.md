@@ -23,5 +23,6 @@ This extension contributes the following settings:
 * `tox`: Set the path to the before-mentioned `tox` executable. If unset, the `tox` executable will be obtained from the `PATH` variable.
 
 
+[tox]: https://tox.wiki/en/latest/index.html
 [python-installation]: https://www.python.org/downloads/
 [tox-installation]: https://tox.wiki/en/latest/installation.html
