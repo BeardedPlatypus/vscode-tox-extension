@@ -1,3 +1,5 @@
+<p align='center'><img src="extension/img/icon.png" align="center"></p>
+
 # Visual Studio Code - Tox Runner
 
 `tox runner` is a visual studio code extension to collect and run [tox][tox] 
