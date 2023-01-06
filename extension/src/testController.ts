@@ -2,9 +2,11 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as util from 'util';
 import { TOX_FILE_NAME } from './common';
+import { exec } from 'child_process';
 
 
 let core = require("./core.js");
+const execAsync = util.promisify(exec);
 
 
 export function create() {
@@ -45,40 +47,27 @@ export function create() {
 
     controller.createRunProfile("Run", vscode.TestRunProfileKind.Run, runHandler);
 
-    function getTerminal(name: string): vscode.Terminal | undefined {
-        return vscode.window.terminals.find(term => term.name == name)
-    }
-
-    function createTerminal(name: string, uri: vscode.Uri): vscode.Terminal {
-        return vscode.window.createTerminal({"name": name, "cwd": uri.fsPath})
-    }
-
-    function resolveTerminal(workspace: vscode.WorkspaceFolder): vscode.Terminal {
-        const toxTerminalName = `tox-runner: ${workspace.name}`
-        const term = getTerminal(toxTerminalName) ?? createTerminal(toxTerminalName, workspace.uri)
-        return term
-    }
-
     function resolveFullEnvName(test: vscode.TestItem) : string {
         return testData.get(test)?.env_name!;
     }
 
-    async function runTestInTox(test: vscode.TestItem) {
-        const workspace = vscode.workspace.getWorkspaceFolder(test.uri!);
-        const terminal = resolveTerminal(workspace!);
-        terminal.show(true);
-
-        const command = `${toxPath} -e ${resolveFullEnvName(test)}`;
-        terminal.sendText(command);
-    }
-
     async function runTest(run: vscode.TestRun, test: vscode.TestItem) {
+        const workspace = vscode.workspace.getWorkspaceFolder(test.uri!);
+        
+        const command = `${toxPath} -e ${resolveFullEnvName(test)}`;
+        const options = {
+            cwd: workspace?.uri.fsPath,
+            windowsHide: true,
+        };
+
         const startTime = Date.now();
+        
         try {
-            runTestInTox(test);
+            await execAsync(command, options);
             run.passed(test, Date.now() - startTime);
-        } catch(e: any) {
-            run.failed(test, new vscode.TestMessage(e.message), Date.now() - startTime);
+        } catch (e: any) {
+            var msg = `${e.stdout.toString()}`;
+            run.failed(test, new vscode.TestMessage(msg), Date.now() - startTime);
         }
     }
 
@@ -104,7 +93,7 @@ export function create() {
                     test.children.forEach(t => testItemQueue.push(t));
                     break;
                 case TestType.Task:
-                    runTest(run, test);
+                    await runTest(run, test);
                     break;
             }
         }
