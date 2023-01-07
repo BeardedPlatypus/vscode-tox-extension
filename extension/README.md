@@ -20,7 +20,9 @@ Code's test environment.
 
 This extension contributes the following settings:
 
-* `toxPath`: Set the path to the before-mentioned `tox` executable. If unset, the `tox` executable will be obtained from the `PATH` variable.
+* `tox-runner.toxPath`: Set the path to the before-mentioned `tox` executable. If unset, the `tox` executable will be obtained from the `PATH` variable.
+* `tox-runner.runInTerminal`: Set whether the test environments should be run in the
+   terminal or in a separate process. Defaults to a separate process.
 
 
 [tox]: https://tox.wiki/en/latest/index.html
