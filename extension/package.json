@@ -32,6 +32,11 @@
           "type": ["string"],
           "default": "", 
           "description": "Specifies the path to the tox executable. If undefined it will use the PATH variable to resolve it."
+        },
+        "tox-runner.runInTerminal": {
+          "type": ["boolean"],
+          "default": 0,
+          "description": "Specifies wether the tox tests should be run in the terminal or not. Defaults to false."
         }
       }
     }
