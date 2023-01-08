@@ -3,8 +3,8 @@
   "scripts": {
     "postinstall": "dotnet tool restore",
     "start": "dotnet fable watch src --run webpack-dev-server",
-    "build": "dotnet fable src && webpack",
-    "production": "npx webpack --config webpack.config.js"
+    "compile": "dotnet fable src && webpack",
+    "package": "npx webpack --config webpack.config.js"
   },
   "devDependencies": {
     "webpack": "^5.75.0",
