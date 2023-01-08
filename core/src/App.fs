@@ -113,6 +113,7 @@ let private retrieveTestEnvs (lines: string list): ToxTask list =
 
 type private EnvListAcc = {
     line: int
+    env_line: int option
     isInToxEnv: bool
     isParsing: bool
     isFinished: bool
@@ -122,6 +123,7 @@ type private EnvListAcc = {
 
 let private defaultEnvListAcc: EnvListAcc = {
     line = 0
+    env_line = None
     isInToxEnv = false
     isParsing = false
     isFinished = false
@@ -202,11 +204,11 @@ let private envListFold (acc: EnvListAcc) (line: string): EnvListAcc =
         elif acc.isInToxEnv && isEnvListDeclaration(trimmedLine) then
             let value = line.Split([|'='|], 2)[1]
             let new_elements = retrieveEnvFromEnvlistLine value acc.line
-            { acc with isParsing = true; elements = acc.elements @ new_elements}
+            { acc with isParsing = true; elements = acc.elements @ new_elements; env_line = Some acc.line}
         elif acc.isInToxEnv && acc.isParsing && (trimmedLine.Contains("=")) then
             { acc with isInToxEnv = false; isFinished = true }
         elif acc.isInToxEnv && acc.isParsing then
-            let new_elements = retrieveEnvFromEnvlistLine trimmedLine acc.line
+            let new_elements = retrieveEnvFromEnvlistLine trimmedLine (acc.env_line |> Option.defaultValue acc.line)
             { acc with elements = acc.elements @ new_elements}
         else
             acc
