@@ -50,23 +50,41 @@ export function create() {
         return testData.get(test)?.env_name!;
     }
 
-    async function runTest(run: vscode.TestRun, test: vscode.TestItem) {
+    async function runTestTerminal(
+        run: vscode.TestRun, test: vscode.TestItem, command: string
+    ) {
+        run.failed(test, new vscode.TestMessage("Terminal not yet supported"), Date.now() - Date.now());
+    }
+
+    async function runTestChildProcess(
+        run: vscode.TestRun, test: vscode.TestItem, command: string
+    ) {
         const workspace = vscode.workspace.getWorkspaceFolder(test.uri!);
-        
-        const command = `${toxPath} -e ${resolveFullEnvName(test)}`;
         const options = {
             cwd: workspace?.uri.fsPath,
             windowsHide: true,
         };
 
         const startTime = Date.now();
-        
         try {
             await execAsync(command, options);
             run.passed(test, Date.now() - startTime);
         } catch (e: any) {
             var msg = `${e.stdout.toString()}`;
             run.failed(test, new vscode.TestMessage(msg), Date.now() - startTime);
+        }
+    }
+
+    async function runTest(run: vscode.TestRun, test: vscode.TestItem) {
+        const configurationSettings = vscode.workspace.getConfiguration('tox-runner');
+        const runInChildProcess: boolean = !configurationSettings.get<boolean>("runInTerminal");
+
+        const command = `${toxPath} -e ${resolveFullEnvName(test)}`;
+
+        if (runInChildProcess) {
+            await runTestChildProcess(run, test, command);
+        } else {
+            await runTestTerminal(run, test, command);
         }
     }
 
