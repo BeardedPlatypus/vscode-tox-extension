@@ -50,10 +50,34 @@ export function create() {
         return testData.get(test)?.env_name!;
     }
 
+    function getTerminal(name: string): vscode.Terminal | undefined {
+        return vscode.window.terminals.find(term => term.name == name);
+    }
+
+    function createTerminal(name: string, uri: vscode.Uri): vscode.Terminal {
+        return vscode.window.createTerminal({"name": name, "cwd": uri.fsPath});
+    }
+
+    function resolveTerminal(workspace: vscode.WorkspaceFolder): vscode.Terminal {
+        const toxTerminalName = `tox-runner: ${workspace.name}`;
+        const term = getTerminal(toxTerminalName) ?? createTerminal(toxTerminalName, workspace.uri);
+        return term
+    }
+
     async function runTestTerminal(
         run: vscode.TestRun, test: vscode.TestItem, command: string
     ) {
-        run.failed(test, new vscode.TestMessage("Terminal not yet supported"), Date.now() - Date.now());
+        const workspace = vscode.workspace.getWorkspaceFolder(test.uri!);
+        const terminal = resolveTerminal(workspace!);
+        terminal.show(true);
+
+        const startTime = Date.now();
+        try {
+            terminal.sendText(command);
+            run.passed(test, Date.now() - startTime);
+        } catch(e: any) {
+            run.failed(test, new vscode.TestMessage(e.message), Date.now() - startTime);
+        }
     }
 
     async function runTestChildProcess(
