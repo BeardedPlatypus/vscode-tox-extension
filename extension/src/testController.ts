@@ -24,7 +24,6 @@ export function create() {
 
     const testData = new WeakMap<vscode.TestItem, ToxTestData>();
 
-    // TODO: verify if this works correctly
     const resolveToxPath = () => {
         const toxPath: string | undefined = vscode.workspace.getConfiguration('tox-runner').get("toxPath");
 
