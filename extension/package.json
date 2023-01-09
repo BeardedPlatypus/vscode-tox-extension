@@ -3,6 +3,8 @@
   "displayName": "Tox Runner",
   "description": "A simple test discovery and runner for tox environments.",
   "version": "0.1.0",
+  "publisher": "BeardedPlatypus",
+  "preview": true,
   "engines": {
     "vscode": "^1.73.0"
   },
