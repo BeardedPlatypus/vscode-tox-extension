@@ -13,6 +13,7 @@
     "url": "https://github.com/BeardedPlatypus/vscode-tox-extension"
   },
   "categories": [
+    "Testing",
     "Other"
   ],
   "keywords": [
