@@ -15,7 +15,7 @@ provides some similar features with three main differences:
 * The Tox Runner extension does not (currently) provide any tasks, while `python-tox` 
    does.
 * The Tox Runner extension handles factors in the `tox.ini` definition, and nests these
-   test environments in the tes explorer.
+   test environments in the test explorer.
 * The Tox Runner extension by default executes tox testenvs in a child process, rather
    than in a Visual Studio code terminal.
 
