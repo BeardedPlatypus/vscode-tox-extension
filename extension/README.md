@@ -1,14 +1,43 @@
-<p align='center'><img src="img/icon.png" align="center"></p>
-
 # Visual Studio Code - Tox Runner
 
 Tox Runner is a simple test extension which integrates the [tox][tox] task automation 
-tool within Visual Studio Code. It can discover the different tasks defined in a `tox.ini`
-file located at the root of your workspace, and run them directly from within Visual Studio
-Code's test environment.
+tool within Visual Studio Code. It can discover the different tasks defined in a 
+`tox.ini` file located at the root of your workspace, and run them directly from within
+Visual Studio Code's test environment.
+
+_For a more mature extension, please take a look at [`python-tox`][python-tox]_
 
 ## Features
 
+The Tox Runner extension is largely inspired by [`python-tox`][python-tox], and 
+provides some similar features with three main differences:
+
+* The Tox Runner extension does not (currently) provide any tasks, while `python-tox` 
+   does.
+* The Tox Runner extension handles factors in the `tox.ini` definition, and nests these
+   test environments in the tes explorer.
+* The Tox Runner extension by default executes tox testenvs in a child process, rather
+   than in a Visual Studio code terminal.
+
+The following sections show the tox runner application in practice:
+
+### Discovering tox `testenvs`
+
+_In the `envlist` variable:_  
+
+<p align='left'><img src="https://github.com/BeardedPlatypus/media-storage/blob/main/tox-runner/envlist.gif?raw=true" align="left"></p>
+
+_In separate sections:_  
+
+<p align='left'><img src="https://github.com/BeardedPlatypus/media-storage/blob/main/tox-runner/testenv.gif?raw=true" align="left"></p>
+
+### Nesting of similarly named `testenvs`
+
+<p align='left'><img src="https://github.com/BeardedPlatypus/media-storage/blob/main/tox-runner/factors.gif?raw=true" align="left"></p>
+
+### Running of `testenvs`
+
+<p align='left'><img src="https://github.com/BeardedPlatypus/media-storage/blob/main/tox-runner/run.gif?raw=true" align="left"></p>
 
 ## Requirements
 
@@ -24,7 +53,12 @@ This extension contributes the following settings:
 * `tox-runner.runInTerminal`: Set whether the test environments should be run in the
    terminal or in a separate process. Defaults to a separate process.
 
+## Attribution
+
+- Face in the icon is based on an icon provided by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
+   The underlying background is the icon of [tox][tox]. 
 
 [tox]: https://tox.wiki/en/latest/index.html
 [python-installation]: https://www.python.org/downloads/
 [tox-installation]: https://tox.wiki/en/latest/installation.html
+[python-tox]: https://marketplace.visualstudio.com/items?itemName=the-compiler.python-tox
