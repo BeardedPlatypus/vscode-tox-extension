@@ -25,19 +25,19 @@ The following sections show the tox runner application in practice:
 
 _In the `envlist` variable:_  
 
-<p align='left'><img src="https://github.com/BeardedPlatypus/media-storage/blob/main/tox-runner/envlist.gif?raw=true" align="left"></p>
+<p align='left'><img src="https://github.com/BeardedPlatypus/media-storage/blob/main/tox-runner/envlist.gif?raw=true" align="left" width="100%"></p>
 
 _In separate sections:_  
 
-<p align='left'><img src="https://github.com/BeardedPlatypus/media-storage/blob/main/tox-runner/testenv.gif?raw=true" align="left"></p>
+<p align='left'><img src="https://github.com/BeardedPlatypus/media-storage/blob/main/tox-runner/testenv.gif?raw=true" align="left" width="100%"></p>
 
 ### Nesting of similarly named `testenvs`
 
-<p align='left'><img src="https://github.com/BeardedPlatypus/media-storage/blob/main/tox-runner/factors.gif?raw=true" align="left"></p>
+<p align='left'><img src="https://github.com/BeardedPlatypus/media-storage/blob/main/tox-runner/factors.gif?raw=true" align="left" width="100%"></p>
 
 ### Running of `testenvs`
 
-<p align='left'><img src="https://github.com/BeardedPlatypus/media-storage/blob/main/tox-runner/run.gif?raw=true" align="left"></p>
+<p align='left'><img src="https://github.com/BeardedPlatypus/media-storage/blob/main/tox-runner/run.gif?raw=true" align="left" width="100%"></p>
 
 ## Requirements
 
