@@ -39,6 +39,11 @@ If you require specific changes, I recommend forking this repository, and buildi
 own version. The development notes should help you set the environment. If this process
 is not clear, feel free to open a discussion for help.
 
+## Attribution
+
+- Face in the icon is based on an icon provided by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
+   The underlying background is the icon of [tox][tox]. 
+
 [python-tox]: https://marketplace.visualstudio.com/items?itemName=the-compiler.python-tox
 [tox]: https://tox.wiki/en/latest/
 [vscode]: https://code.visualstudio.com/
